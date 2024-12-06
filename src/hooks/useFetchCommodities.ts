@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import {CommodityQuote} from "@constants/commodities.ts";
 import {PLUTUS_API_URL, PLUTUS_QUOTE_PATH} from "@constants/api.ts";
 import {Commodity} from "@constants/commodities.ts";
+import axios from "axios";
 
 // Typing of data returned from useFetchCommodities
 export interface FetchCommoditiesReturnType {
@@ -19,12 +20,12 @@ export const useFetchCommodity = (commodity: Commodity) => {
     useEffect(() => {
         const fetchQuoteData = async () => {
             try {
-                const response = await fetch(PLUTUS_API_URL + PLUTUS_QUOTE_PATH + commodity);
-                if (!response.ok) {
+                const response = await axios.get(PLUTUS_API_URL + PLUTUS_QUOTE_PATH + commodity);
+                if (response.status !== 200) {
                     throw new Error(response.statusText);
                 }
 
-                const quote = await response.json();
+                const quote = await response.data
 
                 // JSON fields overlap with CommodityQuote field names so no need for anything extra
                 setData(quote as CommodityQuote);
