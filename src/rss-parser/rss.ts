@@ -17,12 +17,12 @@ export class RSSParser {
 
     public async parse(): Promise<RSSItem[]> {
         try {
-
             const response = await axios.get(this.url);
             if (response.status !== 200) {
                 throw new Error(response.statusText);
             }
 
+            // Parse xml into JSON fields
             const xml = await parseStringPromise(response.data);
 
             return xml.rss.channel[0].item.map((item: any) => ({
