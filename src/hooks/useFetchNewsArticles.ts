@@ -22,7 +22,15 @@ export const useFetchNewsArticles = () => {
 
                 const items = await parser.parse();
 
-                setData(items);
+                const sortedItems = items.sort((a: RSSItem, b: RSSItem) => {
+                    const dateA = new Date(a.publishedDate);
+                    const dateB = new Date(b.publishedDate);
+
+                    // Sort in descending order to show recent news first
+                    return dateB.getTime() - dateA.getTime();
+                });
+
+                setData(sortedItems);
             } catch (error) {
                 setError(error as Error);
             } finally {

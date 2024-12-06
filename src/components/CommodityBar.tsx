@@ -11,7 +11,7 @@ export const CommodityBar = (props: CommodityBarProps) => {
     return (
         <div className="flex flex-col sm:flex-row w-full space-y-4 sm:space-y-0 sm:space-x-6">
             <div className="w-full bg-white p-6 rounded-lg border border-gray-200 hover:border-gray-400">
-                {/* Loading State */}
+                {/* Loading */}
                 {isLoading && (
                     <div className="flex justify-between items-center">
                         <div className="flex items-center">
@@ -20,14 +20,14 @@ export const CommodityBar = (props: CommodityBarProps) => {
                     </div>
                 )}
 
-                {/* Error State */}
+                {/* Error */}
                 {error && !isLoading && (
                     <div className="flex justify-between items-center text-red-500">
                         <div className="text-lg font-semibold">Error: {error.message}</div>
                     </div>
                 )}
 
-                {/* Data State */}
+                {/* Data */}
                 {data && !isLoading && !error && (
                     <div className="flex justify-between items-center">
                         <div className="flex items-center">

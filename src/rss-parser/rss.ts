@@ -5,6 +5,8 @@ export interface RSSItem {
     title: string;
     link: string;
     description: string;
+    sourceName: string;
+    sourceUrl: string;
     publishedDate: string;
 }
 
@@ -29,6 +31,8 @@ export class RSSParser {
                 title: item.title[0],
                 link: item.link[0],
                 description: item.description[0],
+                sourceName: item.source[0]._,
+                sourceUrl: item.source[0].$.url,
                 publishedDate: item.pubDate[0],
             } as RSSItem));
         } catch (error) {
