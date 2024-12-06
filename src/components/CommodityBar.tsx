@@ -1,5 +1,5 @@
-import {Commodity} from "../constants/commodities.ts";
-import {FetchCommoditiesReturnType, useFetchCommodity} from "../hooks/useFetchCommodities.ts";
+import {Commodity} from "@constants/commodities.ts";
+import {FetchCommoditiesReturnType, useFetchCommodity} from "@hooks/useFetchCommodities.ts";
 
 interface CommodityBarProps {
     commodity: Commodity;

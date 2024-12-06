@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import {PROXIED_GOOGLE_NEWS_RSS_URL} from "../constants/api.ts";
-import {RSSItem, RSSParser} from "../rss-parser/rss.ts";
+import {PROXIED_GOOGLE_NEWS_RSS_URL} from "@constants/api.ts";
+import {RSSItem, RSSParser} from "@rss-parser/rss.ts";
 
 // Typing of data returned from useFetchCommodities
 export interface FetchNewsArticlesReturnType {

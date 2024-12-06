@@ -1,6 +1,6 @@
-import {COMMODITIES} from "./constants/commodities.ts";
-import {CommodityBar} from "./components/CommodityBar.tsx";
-import {NewsSection} from "./components/NewsSection.tsx";
+import {COMMODITIES} from "@constants/commodities.ts";
+import {CommodityBar} from "@components/CommodityBar.tsx";
+import {NewsSection} from "@components/NewsSection.tsx";
 
 function App() {
     return (

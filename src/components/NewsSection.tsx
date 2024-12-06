@@ -1,4 +1,4 @@
-import {useFetchNewsArticles, FetchNewsArticlesReturnType} from "../hooks/useFetchNewsArticles.ts";
+import {useFetchNewsArticles, FetchNewsArticlesReturnType} from "@hooks/useFetchNewsArticles.ts";
 
 export const NewsSection = () => {
     const { error, isLoading, data }: FetchNewsArticlesReturnType = useFetchNewsArticles();

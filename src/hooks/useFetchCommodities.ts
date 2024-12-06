@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import {CommodityQuote} from "../types/data.ts";
-import {PLUTUS_API_URL, PLUTUS_QUOTE_PATH} from "../constants/api.ts";
-import {Commodity} from "../constants/commodities.ts";
+import {CommodityQuote} from "@constants/commodities.ts";
+import {PLUTUS_API_URL, PLUTUS_QUOTE_PATH} from "@constants/api.ts";
+import {Commodity} from "@constants/commodities.ts";
 
 // Typing of data returned from useFetchCommodities
 export interface FetchCommoditiesReturnType {
