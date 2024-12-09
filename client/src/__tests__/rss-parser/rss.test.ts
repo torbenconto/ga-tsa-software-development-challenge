@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom'
-import {RSSItem, RSSParser} from '../../rss-parser/rss';
+import {RSSItem, RSSParser} from '../../rss-parser/rss.ts';
 import axios from 'axios';
 import {parseStringPromise} from 'xml2js';
 
