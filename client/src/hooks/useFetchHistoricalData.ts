@@ -20,7 +20,7 @@ export interface FetchHistoricalDataReturnType {
 }
 
 // Data hook for fetching of commodity data to be displayed in the market overview
-export const useFetchHistoricalData = (commodity: Commodity) => {
+export const useFetchHistoricalData = (commodity: Commodity, range: string, interval: string) => {
     const [isLoading, setIsLoading] = useState(true);
     const [data, setData] = useState<HistoricalData[]>();
     const [error, setError] = useState<Error>();
@@ -28,7 +28,7 @@ export const useFetchHistoricalData = (commodity: Commodity) => {
     useEffect(() => {
         const fetchHistoricalData = async () => {
             try {
-                const response = await axios.get(PLUTUS_API_URL + PLUTUS_HISTORICAL_PATH + commodity + "?range=max" + "&interval=1d");
+                const response = await axios.get(PLUTUS_API_URL + PLUTUS_HISTORICAL_PATH + commodity + `?range=${range}` + `&interval=${interval}`);
                 if (response.status !== 200) {
                     throw new Error(response.statusText);
                 }
