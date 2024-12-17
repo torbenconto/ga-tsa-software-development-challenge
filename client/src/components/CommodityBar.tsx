@@ -3,6 +3,7 @@ import { FetchHistoricalDataReturnType, useFetchHistoricalData } from "@hooks/us
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { PLUTUS_API_URL, PLUTUS_QUOTE_PATH } from "@constants/api.ts";
+import {useFetchPricePrediction} from "@hooks/useFetchPricePrediction.ts";
 
 interface CommodityBarProps {
     commodity: Commodity;
@@ -12,6 +13,8 @@ export const CommodityBar = (props: CommodityBarProps) => {
     const [isLoading, setIsLoading] = useState(true);
     const [data, setData] = useState<CommodityQuote | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const pricePrediction = useFetchPricePrediction(props.commodity);
 
     const historicalDataReturn1y: FetchHistoricalDataReturnType = useFetchHistoricalData(
         props.commodity,
@@ -81,9 +84,11 @@ export const CommodityBar = (props: CommodityBarProps) => {
         : { percent: "N/A", color: "text-gray-500" };
 
     return (
-        <div className="flex flex-col sm:flex-row w-full space-y-4 sm:space-y-0 sm:space-x-6">
-            <div className="w-full bg-white p-6 rounded-lg border border-gray-200 hover:border-gray-400 flex justify-between items-center">
-
+        <div
+            className={`w-full bg-white p-6 rounded-lg border border-gray-200 hover:border-gray-400 flex flex-col justify-between ${isDropdownOpen ? 'space-y-4' : ''}`}
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+        >
+            <div className="flex w-full">
                 {/* Handle Loading State */}
                 {isLoading && !error && (
                     <div className="flex justify-center items-center w-full py-4">
@@ -108,9 +113,7 @@ export const CommodityBar = (props: CommodityBarProps) => {
 
                             {/* Current Price */}
                             <div className="flex items-center space-x-4">
-                                <span className="text-xl text-gray-800">
-                                    ${data?.regularMarketPrice.toFixed(2)}
-                                </span>
+                                <span className="text-xl text-gray-800">${data?.regularMarketPrice.toFixed(2)}</span>
                                 <span
                                     className={`${
                                         (data?.regularMarketChangePercent || 0) > 0
@@ -120,8 +123,8 @@ export const CommodityBar = (props: CommodityBarProps) => {
                                                 : "text-gray-500"
                                     } text-sm`}
                                 >
-                                    {data?.regularMarketChangePercent.toFixed(2)}%
-                                </span>
+                    {data?.regularMarketChangePercent.toFixed(2)}%
+                </span>
                             </div>
 
                             {/* Monthly and Yearly Changes */}
@@ -130,33 +133,65 @@ export const CommodityBar = (props: CommodityBarProps) => {
                                 <div className="flex items-center">
                                     <p className="text-gray-600">Monthly Change:</p>
                                     <span className={`ml-2 ${monthlyChange.color}`}>
-                                        {monthlyChange.percent}%
-                                    </span>
+                        {monthlyChange.percent}%
+                    </span>
                                 </div>
 
                                 {/* Yearly Change */}
                                 <div className="flex items-center">
                                     <p className="text-gray-600">Yearly Change:</p>
                                     <span className={`ml-2 ${yearlyChange.color}`}>
-                                        {yearlyChange.percent}%
-                                    </span>
+                        {yearlyChange.percent}%
+                    </span>
                                 </div>
                             </div>
                         </div>
 
+                        {/* Prediction Box */}
+                            <div
+                                className="flex flex-col mx-auto items-center justify-center mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                <p className="text-sm font-semibold text-blue-800">Price Prediction</p>
+                                {pricePrediction.data && !pricePrediction.isLoading && !pricePrediction.error && (
+
+                                    <span
+                                        className="text-xl font-bold text-blue-600">${pricePrediction.data.predictions.day}</span>
+                                )}
+
+                                {pricePrediction.error && (
+                                    <span className="text-xl font-bold text-blue-600">
+                                        N/A
+                                    </span>
+                                )}
+
+                                {pricePrediction.isLoading && (
+                                    <span className="text-xl font-bold text-blue-600">
+                                        Loading...
+                                    </span>
+                                )}
+
+
+                            </div>
+
+
                         {/* Day Range */}
-                        <div className="flex flex-col items-center space-y-1">
+                        <div className="flex flex-col items-center space-y-1 justify-center ml-auto">
                             <p className="text-sm text-gray-500">Day Range</p>
                             <span className="text-gray-800 text-sm font-medium">
-                                {data.regularMarketDayRange
-                                    ?.split("-")
-                                    .map((range) => `$${range.trim()}`)
-                                    .join(" - ")}
-                            </span>
+                {data.regularMarketDayRange
+                    ?.split("-")
+                    .map((range) => `$${range.trim()}`)
+                    .join(" - ")}
+            </span>
                         </div>
                     </>
                 )}
+
             </div>
+            {/* Dropdown */}
+            {isDropdownOpen && (
+                <div className="w-full p-4 bg-gray-100 rounded-lg border border-gray-300">
+                </div>
+            )}
         </div>
     );
 };

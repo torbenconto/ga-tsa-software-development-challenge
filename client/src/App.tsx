@@ -12,7 +12,7 @@ function App() {
                         <CommodityBar key={commodity} commodity={commodity}/>
                     ))}
                 </div>
-                <NewsSection />
+                <NewsSection/>
             </div>
         </>
     )

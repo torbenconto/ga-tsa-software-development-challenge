@@ -27,4 +27,12 @@ export interface CommodityQuote {
     regularMarketChangePercent: number
     shortName: string
     regularMarketDayRange: string
+    regularMarketVolume: number
+    regularMarketPreviousClose: number
+    bid: number
+    ask: number
+    bidSize: number
+    askSize: number
+    fullExchangeName: string
+
 }

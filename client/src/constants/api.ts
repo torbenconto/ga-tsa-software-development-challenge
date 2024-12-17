@@ -17,3 +17,5 @@ export const PROXIED_GOOGLE_NEWS_RSS_URL = "/rss"
 export const AI_API_URL = "http://127.0.0.1:8000"
 
 export const AI_SENTIMENT_PATH = "/sentiment"
+
+export const AI_PRICE_PREDICTION_PATH = "/price_prediction/"
