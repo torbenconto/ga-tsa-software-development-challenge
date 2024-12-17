@@ -1,0 +1,8 @@
+asyncio
+pandas
+httpx
+prophet
+pydantic
+transformers
+aiofiles
+fastapi
