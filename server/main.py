@@ -26,6 +26,11 @@ app.add_middleware(
 # Initialize sentiment pipeline
 sentiment_pipeline = pipeline("sentiment-analysis")
 
+# Caches
+sentiment_cache: Dict[str, Dict] = {}  # Cache: {title: {"timestamp": datetime, "result": Dict}}
+prediction_cache: Dict[str, Dict] = {}  # Cache: {ticker: {"timestamp": datetime, "predictions": Dict}}
+cache_lock = asyncio.Lock()
+
 # Pydantic models
 class SentimentRequest(BaseModel):
     article_title: str
@@ -39,6 +44,12 @@ class PricePredictionRequest(BaseModel):
 async def sentiment(req: SentimentRequest):
     title = req.article_title
 
+    # Check sentiment cache
+    async with cache_lock:
+        cached = sentiment_cache.get(title)
+        if cached and cached["timestamp"] > datetime.now() - timedelta(minutes=15):  # Cache expires in 15 mins
+            return cached["result"]
+
     # Perform sentiment analysis
     sentiment_result = sentiment_pipeline(title)
 
@@ -47,8 +58,14 @@ async def sentiment(req: SentimentRequest):
         "confidence": sentiment_result[0]["score"],
     }
 
+    # Update sentiment cache
+    async with cache_lock:
+        sentiment_cache[title] = {"timestamp": datetime.now(), "result": result}
+
     return result
 
+
+# --- Price Prediction Endpoint ---
 async def fetch_historical_data(ticker: str) -> pd.DataFrame:
     """Fetch historical data for the given ticker."""
     url = f"https://plutus-api-550455289977.us-central1.run.app/historical/{ticker}?range=10y&interval=1d"
@@ -69,33 +86,102 @@ async def fetch_historical_data(ticker: str) -> pd.DataFrame:
     df.columns = ["ds", "y"]
     return df
 
+
+async def train_and_save_model(ticker: str, df: pd.DataFrame, model_path: str) -> Prophet:
+    """Train and save a Prophet model."""
+    model = Prophet(
+        daily_seasonality=False,
+        weekly_seasonality=False,
+        yearly_seasonality=True,
+    )
+    model.add_seasonality(name="monthly", period=30.5, fourier_order=5)
+    await asyncio.to_thread(model.fit, df)
+
+    # Save the model
+    async with aiofiles.open(model_path, "w") as file:
+        await file.write(model_to_json(model))
+
+    return model
+
+
+async def generate_predictions(ticker: str, model: Prophet) -> Dict:
+    """Generate predictions for the next day, month, and year."""
+    historical_df = model.history.copy()
+    historical_df["daily_change"] = historical_df["y"].pct_change()
+    avg_daily_change = historical_df["daily_change"].mean() * 100
+
+    future_periods = {"day": 1, "month": 30, "year": 365}
+    predictions = {}
+
+    for period_name, days in future_periods.items():
+        future_df = model.make_future_dataframe(periods=days)
+        forecast = model.predict(future_df)
+        predicted_price = forecast.iloc[-1]["yhat"]
+
+        current_price = historical_df.iloc[-1]["y"]
+        max_expected_change = current_price * (1 + (avg_daily_change / 100) * days)
+        min_expected_change = current_price * (1 - (avg_daily_change / 100) * days)
+        bounded_prediction = min(max(predicted_price, min_expected_change), max_expected_change)
+
+        predictions[period_name] = round(bounded_prediction, 2)
+
+    return predictions
+
+
 @app.post("/price_prediction")
 async def price_prediction(req: PricePredictionRequest, background_tasks: BackgroundTasks):
     ticker = req.ticker
-    model_path=f'dot/models/{ticker}.json'
+    model_path = f"./models/{ticker}.json"
 
-    model=None
+    # Check prediction cache
+    async with cache_lock:
+        cached = prediction_cache.get(ticker)
+        if cached and cached["timestamp"] > datetime.now() - timedelta(minutes=30):  # Cache expires in 30 mins
+            return {"predictions": cached["predictions"]}
 
+    # Load or train the model
+    model = None
     if os.path.exists(model_path):
-        async with aiofiles.open(model_path, 'r') as file:
-            model=model_from_json(file.read())
+        async with aiofiles.open(model_path, "r") as file:
+            model_json = await file.read()
+            model = model_from_json(model_json)
     else:
         df = await fetch_historical_data(ticker)
-        model=Prophet(
-            daily_seasonality=False,
-            weekly_seasonality=False,
-            yearly_seasonality=True
-        )
-        model.add_seasonality(name="monthly", period=30.5, fourier_order=5)
-        model.fit(df)
-        async with aiofiles.open(model_path, 'w') as file:
-            await file.write(model_to_json(model))
+        model = await train_and_save_model(ticker, df, model_path)
 
-    future_df = model.make_future_dataframe(periods=365)
-    forecast=model.predict(future_df)
-    return forecast
-    
+    # Generate predictions
+    predictions = await generate_predictions(ticker, model)
 
+    # Update prediction cache
+    async with cache_lock:
+        prediction_cache[ticker] = {"timestamp": datetime.now(), "predictions": predictions}
+
+    # Add background task to refresh cache
+    background_tasks.add_task(refresh_predictions, ticker, model_path)
+
+    return {"predictions": predictions}
+
+
+async def refresh_predictions(ticker: str, model_path: str):
+    """Refresh predictions in the background."""
+    try:
+        if os.path.exists(model_path):
+            async with aiofiles.open(model_path, "r") as file:
+                model_json = await file.read()
+                model = model_from_json(model_json)
+        else:
+            df = await fetch_historical_data(ticker)
+            model = await train_and_save_model(ticker, df, model_path)
+
+        # Generate new predictions
+        predictions = await generate_predictions(ticker, model)
+
+        # Update prediction cache
+        async with cache_lock:
+            prediction_cache[ticker] = {"timestamp": datetime.now(), "predictions": predictions}
+
+    except Exception as e:
+        print(f"Error refreshing predictions for {ticker}: {e}")
 
 if __name__ == "__main__":
     import uvicorn
