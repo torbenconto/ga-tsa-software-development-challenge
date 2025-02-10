@@ -13,7 +13,6 @@ export const CommodityBar = (props: CommodityBarProps) => {
     const [isLoading, setIsLoading] = useState(true);
     const [data, setData] = useState<CommodityQuote | null>(null);
     const [error, setError] = useState<string | null>(null);
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const pricePrediction = useFetchPricePrediction(props.commodity);
 
     const historicalDataReturn1y: FetchHistoricalDataReturnType = useFetchHistoricalData(
@@ -85,8 +84,7 @@ export const CommodityBar = (props: CommodityBarProps) => {
 
     return (
         <div
-            className={`w-full bg-white p-6 rounded-lg border border-gray-200 hover:border-gray-400 flex flex-col justify-between ${isDropdownOpen ? 'space-y-4' : ''}`}
-            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            className={`w-full bg-white p-6 rounded-lg border border-gray-200 hover:border-gray-400 flex flex-col justify-between`}
         >
             <div className="flex w-full">
                 {/* Handle Loading State */}
@@ -187,11 +185,6 @@ export const CommodityBar = (props: CommodityBarProps) => {
                 )}
 
             </div>
-            {/* Dropdown */}
-            {isDropdownOpen && (
-                <div className="w-full p-4 bg-gray-100 rounded-lg border border-gray-300">
-                </div>
-            )}
         </div>
     );
 };
