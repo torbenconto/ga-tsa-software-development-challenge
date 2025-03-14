@@ -133,6 +133,9 @@ async def price_prediction(req: PricePredictionRequest, background_tasks: Backgr
     ticker = req.ticker
     model_path = f"./models/{ticker}.json"
 
+    # Ensure the models directory exists
+    os.makedirs(os.path.dirname(model_path), exist_ok=True)
+
     # Check prediction cache
     async with cache_lock:
         cached = prediction_cache.get(ticker)
