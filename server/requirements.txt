@@ -6,3 +6,5 @@ pydantic
 transformers
 aiofiles
 fastapi
+torch
+uvicorn
